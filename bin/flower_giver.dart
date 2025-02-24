@@ -4,20 +4,11 @@ import 'package:dotenv/dotenv.dart';
 import 'package:flower_giver/gemini_wrapper.dart';
 import 'package:flower_giver/ipv6_client.dart';
 import 'package:flower_giver/root_handler.dart';
+import 'package:flower_giver/utils/template_loader.dart';
 import 'package:http/io_client.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
-
-// Global instance of GeminiWrapper
-late final GeminiWrapper geminiWrapper;
-
-// Configure routes.
-final _router = Router()..get('/', _rootHandler);
-
-Future<Response> _rootHandler(Request request) async {
-  return await rootHandler(request, geminiWrapper);
-}
 
 void main(List<String> args) async {
   if (!args.contains('--prod') && !args.contains('--dev')) {
@@ -33,7 +24,7 @@ void main(List<String> args) async {
   final env = DotEnv()..load();
   final isProd = args.contains('--prod');
 
-  geminiWrapper = GeminiWrapper(
+  final geminiWrapper = GeminiWrapper(
     apiKey: env['GEMINI_API_KEY']!,
     httpClient:
         isProd
@@ -43,9 +34,20 @@ void main(List<String> args) async {
             : null,
   );
 
+  final templateLoader = TemplateLoader();
+
+  final router =
+      Router()
+        ..get('/', (request) async {
+          return await rootHandler(request, geminiWrapper, templateLoader);
+        })
+        ..all('/<ignored|.*>', (Request request) {
+          return Response.movedPermanently('/');
+        });
+
   final handler = Pipeline()
       .addMiddleware(logRequests())
-      .addHandler(_router.call);
+      .addHandler(router.call);
 
   final ip = isProd ? InternetAddress.anyIPv6 : InternetAddress.loopbackIPv4;
   final port = int.parse(

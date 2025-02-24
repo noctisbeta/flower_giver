@@ -18,17 +18,7 @@ final class GeminiWrapper {
   Future<String> customizedResponse(String name) async {
     final response = await model.generateContent([
       Content.text(
-        'Write a cute story, no more than 2 sentences long, about a dragon giving a flower to $name.',
-      ),
-    ]);
-
-    return response.text ?? 'No response';
-  }
-
-  Future<String> getGeminiResponse() async {
-    final response = await model.generateContent([
-      Content.text(
-        'Write a story about a dragon and a knight, that ends with the dragon giving the knight a flower. The story should be quite short, no more than 2 sentences. Pick out fun names.',
+        'Write a cute story, no more than 2 sentences long, about a dragon giving a flower to $name. Make this random and fun!',
       ),
     ]);
 
