@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
 import 'package:flower_giver/gemini_wrapper.dart';
+import 'package:flower_giver/ipv6_client.dart';
 import 'package:flower_giver/root_handler.dart';
+import 'package:http/io_client.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -18,20 +20,54 @@ Future<Response> _rootHandler(Request request) async {
 }
 
 void main(List<String> args) async {
+  if (!args.contains('--prod') && !args.contains('--dev')) {
+    stderr.writeln('Error: Must specify either --prod or --dev flag');
+    exit(1);
+  }
+
+  if (args.contains('--prod') && args.contains('--dev')) {
+    stderr.writeln('Error: Cannot specify both --prod and --dev flags');
+    exit(1);
+  }
+
   final env = DotEnv()..load();
+  final isProd = args.contains('--prod');
 
-  // Initialize the global instance early
-  geminiWrapper = GeminiWrapper(apiKey: env['GEMINI_API_KEY']!);
+  geminiWrapper = GeminiWrapper(
+    apiKey: env['GEMINI_API_KEY']!,
+    httpClient:
+        isProd
+            ? IOClient(
+              IPv6Client(targetHost: 'generativelanguage.googleapis.com'),
+            )
+            : null,
+  );
 
-  // Use IPv6 only
-  final ip = InternetAddress.anyIPv6;
-  print('Using IPv6 address: ${ip.address}');
-
-  // Configure a pipeline that logs requests.
   final handler = Pipeline()
       .addMiddleware(logRequests())
       .addHandler(_router.call);
 
+  final ip = isProd ? InternetAddress.anyIPv6 : InternetAddress.loopbackIPv4;
+  final port = int.parse(
+    Platform.environment['PORT'] ?? (isProd ? '8443' : '8080'),
+  );
+
+  final server = await (isProd ? _serveProduction : _serveDevelopment)(
+    handler,
+    ip,
+    port,
+  );
+
+  print(
+    'Server listening on ${server.address.address}:${server.port} (${isProd ? 'production' : 'development'} mode)',
+  );
+}
+
+Future<HttpServer> _serveProduction(
+  Handler handler,
+  InternetAddress ip,
+  int port,
+) async {
   final certificateChain =
       '/etc/letsencrypt/live/flowers.fractalfable.com/fullchain.pem';
   final privateKey =
@@ -45,10 +81,7 @@ void main(List<String> args) async {
         ..useCertificateChain(certificate.path)
         ..usePrivateKey(privateKeyFile.path);
 
-  // For running in containers, we respect the PORT environment variable.
-  final port = int.parse(Platform.environment['PORT'] ?? '8443');
-
-  final server = await serve(
+  return serve(
     handler,
     ip,
     port,
@@ -56,6 +89,12 @@ void main(List<String> args) async {
     shared: false,
     poweredByHeader: null,
   );
+}
 
-  print('Server listening on IPv6 ${server.address.address}:${server.port}');
+Future<HttpServer> _serveDevelopment(
+  Handler handler,
+  InternetAddress ip,
+  int port,
+) async {
+  return serve(handler, ip, port, shared: false, poweredByHeader: null);
 }
