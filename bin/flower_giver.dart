@@ -49,7 +49,7 @@ void main(List<String> args) async {
       .addMiddleware(logRequests())
       .addHandler(router.call);
 
-  final ip = isProd ? InternetAddress.anyIPv6 : InternetAddress.loopbackIPv4;
+  final ip = isProd ? InternetAddress.anyIPv6 : InternetAddress.anyIPv4;
   final port = int.parse(
     Platform.environment['PORT'] ?? (isProd ? '8443' : '8080'),
   );
