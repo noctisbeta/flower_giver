@@ -19,12 +19,11 @@ class TemplateLoader {
   String render(String template, Map<String, String> variables) {
     var result = template;
     variables.forEach((key, value) {
-      if (key == 'message' && variables.containsKey('name')) {
-        final name = variables['name']!;
-        // Wrap name occurrences with highlight span
-        value = value.replaceAll(
-          RegExp(name, caseSensitive: false),
-          '<span class="highlight">$name</span>',
+      if (key == 'message') {
+        // Replace name tokens with highlight spans
+        value = value.replaceAllMapped(
+          RegExp(r'\[NAME\](.*?)\[/NAME\]'),
+          (match) => '<span class="highlight">${match[1]}</span>',
         );
       }
       result = result.replaceAll('{{$key}}', value);

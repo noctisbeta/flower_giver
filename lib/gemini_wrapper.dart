@@ -15,10 +15,11 @@ final class GeminiWrapper {
 
   final GenerativeModel model;
 
-  Future<String> customizedResponse(String name) async {
+  Future<String> customizedResponse(String name, String lang) async {
     final response = await model.generateContent([
       Content.text(
-        'Write a cute story, no more than 2 sentences long, about a dragon giving a flower to $name. Make this random and fun!',
+        '''Write a cute story in the language $lang, no more than 2 sentences long, about a dragon giving a flower to $name. Make this random and fun!
+      Important: Wrap any variation of the name $name with [NAME] tokens, for example: [NAME]Peter[/NAME] or [NAME]Petra[/NAME].''',
       ),
     ]);
 

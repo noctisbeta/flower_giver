@@ -8,11 +8,12 @@ Future<Response> rootHandler(
   TemplateLoader templateLoader,
 ) async {
   final String? name = request.url.queryParameters['name'];
+  final String lang = request.url.queryParameters['lang'] ?? 'en';
 
   final baseTemplate = await templateLoader.load('base');
   final String content;
   if (name != null) {
-    final geminiResponse = await geminiWrapper.customizedResponse(name);
+    final geminiResponse = await geminiWrapper.customizedResponse(name, lang);
     final messageTemplate = await templateLoader.load('message');
     content = templateLoader.render(messageTemplate, {
       'message': geminiResponse,
