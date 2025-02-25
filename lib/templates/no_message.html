@@ -119,9 +119,10 @@
     padding: 0.8rem;
     border: 2px solid #ff69b4;
     border-radius: 8px;
-    font-size: 24px; /* Increased from 16px */
+    font-size: 24px;
     width: auto;
-    min-width: 70px; /* Slightly increased to accommodate larger emoji */
+    min-width: 70px;
+    background-color: white;
     -webkit-appearance: none;
     appearance: none;
     -moz-appearance: none;
@@ -129,7 +130,20 @@
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
     cursor: pointer;
-    text-align: center; /* Center the emoji */
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Remove default dropdown arrow on iOS */
+  .lang-select::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Remove default dropdown arrow on other browsers */
+  .lang-select::-ms-expand {
+    display: none;
   }
 
   .lang-select:focus {
