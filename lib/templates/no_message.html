@@ -28,11 +28,16 @@
   <div id="toast" class="toast"></div>
 </div>
 <script>
-  function showToast(message) {
+  function showToast(message, url) {
     const toast = document.getElementById("toast");
-    toast.textContent = message;
+    toast.innerHTML = `
+      ${message}
+      <button onclick="window.location.href='${url}'" class="toast-action">
+        🌸 GO
+      </button>
+    `;
     toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 3000);
+    setTimeout(() => toast.classList.remove("show"), 5000);
   }
 
   function capitalizeFirstLetter(string) {
@@ -52,10 +57,10 @@
     navigator.clipboard
       .writeText(url.toString())
       .then(() => {
-        showToast(`Link copied! Share it with ${inputName} ✨`);
+        showToast(`🔗 Copied for ${inputName} ✨`, url.toString());
       })
       .catch(() => {
-        showToast("Failed to copy link 😔");
+        showToast("Failed to copy 😔");
       });
   }
 </script>
@@ -131,9 +136,8 @@
     transition: border-color 0.2s, box-shadow 0.2s;
     cursor: pointer;
     text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding-right: 0.8rem; /* Make padding equal on both sides */
+    padding-left: 0.8rem;
   }
 
   /* Remove default dropdown arrow on iOS */
@@ -149,6 +153,12 @@
   .lang-select:focus {
     border-color: #ff4da6;
     box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.2);
+  }
+
+  /* Remove flex display as it's causing centering issues on mobile */
+  .lang-select option {
+    text-align: center;
+    font-size: 24px;
   }
 
   .share-button {
@@ -201,10 +211,35 @@
     opacity: 0;
     transition: opacity 0.3s, visibility 0.3s;
     width: min(90%, 300px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
 
   .toast.show {
     visibility: visible;
     opacity: 1;
+  }
+
+  .toast-action {
+    background: none;
+    border: none;
+    color: #ff69b4;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .toast-action:hover {
+    background: rgba(255, 105, 180, 0.1);
+  }
+
+  .toast-action:active {
+    transform: scale(0.95);
   }
 </style>
