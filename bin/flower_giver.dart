@@ -9,6 +9,7 @@ import 'package:http/io_client.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
+import 'package:shelf_static/shelf_static.dart';
 
 void main(List<String> args) async {
   if (!args.contains('--prod') && !args.contains('--dev')) {
@@ -41,6 +42,7 @@ void main(List<String> args) async {
         ..get('/', (request) async {
           return await rootHandler(request, geminiWrapper, templateLoader);
         })
+        ..mount('/public/', createStaticHandler('public'))
         ..all('/<ignored|.*>', (Request request) {
           return Response.movedPermanently('/');
         });
